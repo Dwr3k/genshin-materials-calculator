@@ -8,9 +8,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
 
-from copy import deepcopy
-from pynput import keyboard
-
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly", "https://www.googleapis.com/auth/spreadsheets"]
 
@@ -403,6 +400,7 @@ def record_boss():
 
                 print(f"{cell} - New:{boss_string} Old:{boss_previous}")
 
+
 def update_cell(cell_index, item, value):
     sheet.values().update(spreadsheetId=SPREADSHEET_ID,
                           key='AIzaSyAGHJyMe1eEevgspPhehzI_mDJ3imwO0Eo',
@@ -411,7 +409,5 @@ def update_cell(cell_index, item, value):
                           body={'majorDimension': 'COLUMNS', 'values': [[value]]}).execute()
     print(f"Wrote {item}: {value} in {cell_index}")
 
-# with keyboard.GlobalHotKeys({
-#         '-+*': main}) as h:
-#         h.join()
+
 main()
