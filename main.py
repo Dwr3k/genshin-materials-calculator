@@ -84,7 +84,9 @@ def main():
     print(bossmats_needed)
     print(books_needed)
     #print(bossmat_mapping)
-    record(overall_sheet)
+    #record(overall_sheet)
+    record_books()
+    record_boss()
     return
 
     # sheets = [mondstadt_sheet, liyue_sheet, inazuma_sheet, sumeru_sheet, fontaine_sheet]
@@ -266,9 +268,6 @@ def calculate_holdovers():
     #         print(extra_books)
 
 
-
-
-
 def do_diff():
     global books_needed, bossmats_needed
 
@@ -305,7 +304,7 @@ def build_book_printout(needed, total):
     # BN > total, total == 0, Done, record 0
     # BN == total, spreadsheet shows 0
          # Want to show matching number
-    print(f"{needed}    {total}")
+    #print(f"{needed}    {total}")
     if needed < 0 and total != 0:
         return f"{abs(needed)+total}/{total}"
     elif needed == 0 and total > 0:
@@ -320,113 +319,97 @@ def build_book_printout(needed, total):
         return f"{needed}/{total}"
 
 
-
-def record(overall_sheet):
+def record_books():
     print("Writing materials needed")
-    data = (sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Overall!A2:L20", majorDimension="COLUMNS").execute())
+    data = (sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Materials_Overview",
+                               majorDimension="COLUMNS").execute())
     values = data.get("values", [])
     letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    for book in books.keys():
-        green_had = book[0]
-        blue_had = book[1]
-        purple_had = book[2]
+    for x in range(len(values))[::4]:
+        column_index = x
+        column = values[column_index]
+        for y in range(len(column)):
+            row_index = y
+            cell = column[y]
+            if cell in books.keys():
+                cells_range_start = f"{letters[column_index+1]}{row_index+1}"
+                cells_range_end = f"{letters[column_index+3]}{row_index+1}"
+                green_index = f"{cells_range_start}"
+                blue_index = f"{letters[column_index+2]}{row_index+1}"
+                purple_index = f"{cells_range_end}"
+                book_row = (sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                                          range=f"{cells_range_start}:{cells_range_end}",
+                                                          majorDimension="COLUMNS").execute()).get("values", [])
+                print(f"{cell}: {book_row}")
+                print(f"{cells_range_start}:{cells_range_end}")
+
+                green_previous =  book_row[0][0]
+                blue_previous = book_row[1][0]
+                purple_previous = book_row[2][0]
+
+                green_string = build_book_printout(books_needed[cell][0], books_total[cell][0])
+                blue_string = build_book_printout(books_needed[cell][1], books_total[cell][1])
+                purple_string = build_book_printout(books_needed[cell][2], books_total[cell][2])
+
+                if green_string != green_previous:
+                    update_cell(cell_index=green_index, item=cell, value=green_string)
+                if blue_string != blue_previous:
+                    update_cell(cell_index=blue_index, item=cell, value=blue_string)
+                if purple_string != purple_previous:
+                    update_cell(cell_index=purple_index, item=cell, value=purple_string)
+
+                print(f"{cell} - New:{green_string} Old:{green_previous}")
+                print(f"{cell} - New:{blue_string} Old:{blue_previous}")
+                print(f"{cell} - New:{purple_string} Old:{purple_previous}")
 
 
+def record_boss():
+    print("Writing Boss Materials needed")
+    data = (sheet.values().get(spreadsheetId=SPREADSHEET_ID, range="Materials_Overview",
+                               majorDimension="COLUMNS").execute())
+    values = data.get("values", [])
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    for x in range(len(values)):
-        for y in range(len(values[x])):
-            item = values[x][y]
-            if item in books_needed:
-                books_still_needed = books_needed[item]
-                total_needed = books_total[item]
+    for x in range(len(values))[::4]:
+        column_index = x
+        column = values[column_index]
+        for y in range(len(column)):
+            row_index = y
+            cell = column[y]
+            if cell in bossmats.keys():
+                cell_index = f"{letters[column_index + 1]}{row_index + 1}"
 
-                #List that zips up both values
-                needed_and_total = [books_still_needed[0], total_needed[0],
-                                    books_still_needed[1], total_needed[1],
-                                    books_still_needed[2], total_needed[2]]
+                boss_row = (sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                               range=f"{cell_index}",
+                                               majorDimension="COLUMNS").execute()).get("values", [])
+                print(f"{cell}: {boss_row}")
+                print(f"{cell_index}")
 
-
-                # print(f"{values[x][y]}")
-                # print(f"{letters[x+1]}{y+2}")
-                # print(f"{letters[x+2]}{y+2}")
-                # print(f"{letters[x+3]}{y+2}")
-
-                green = books_still_needed[0]
-                blue = books_still_needed[1]
-                purple = books_still_needed[2]
-
-                green_total = total_needed[0]
-                blue_total = total_needed[1]
-                purple_total = total_needed[2]
-
-                green_string = "0"
-                blue_string = "0"
-                purple_string = "0"
-
-
-
-                green_string  = build_book_printout(books_still_needed[0], total_needed[0])
-                blue_string   = build_book_printout(books_still_needed[1], total_needed[1])
-                purple_string = build_book_printout(books_still_needed[2], total_needed[2])
-
-                # if green_total != 0:
-                #     green_string = f"{abs(green)}/{green_total}"
-                # if blue_total != 0:
-                #     blue_string = f"{abs(blue)}/{blue_total}"
-                # if purple_total != 0:
-                #     purple_string = f"{abs(purple)}/{purple_total}"
-
-                # if green != 0 and green < green_total:
-                #     green_string = f"{green}/{green_total}"
-                # if blue != 0 and blue < blue_total:
-                #     blue_string = f"{blue}/{blue_total}"
-                # if purple != 0 and purple < purple_total:
-                #     purple_string = f"{purple}/{purple_total}"
-
-
-
-                #print(f"{letters[x + 1]}{y + 2}:{letters[x + 3]}{y+2}")
-                #print(green, blue, purple)
-                print(f"{item}: Books Had: {books_still_needed}, Books Needed: {total_needed} ")
-                print(f"Recording {item}: Green = {green} Blue = {blue} Purple = {purple}")
-
-                sheet.values().update(spreadsheetId=SPREADSHEET_ID,
-                                      key='AIzaSyAGHJyMe1eEevgspPhehzI_mDJ3imwO0Eo',
-                                      range=f"Overall!{letters[x + 1]}{y + 2}:{letters[x + 3]}{y+2}",
-                                      valueInputOption="USER_ENTERED",
-                                      body={'majorDimension': 'COLUMNS', 'values': [[green_string], [blue_string], [purple_string]]}).execute()
-
-            elif item in bossmats_needed:
-                value = bossmats_needed[item]
-                boss_total = bossmats[item]
-                total_needed = bossmats_total[item]
                 boss_string = "0"
+                boss_needed = bossmats_needed[cell]
+                boss_total_needed = bossmats_total[cell]
 
-                if total_needed != 0:
-                    boss_string = f"{boss_total}/{total_needed}"
+                if boss_total_needed != 0:
+                    if boss_needed < 0:
+                        boss_string = f"{abs(boss_needed - boss_total_needed)}/{boss_total_needed}"
+                    else:
+                        boss_string = f"{boss_needed}/{boss_total_needed}"
 
-                # if value != 0 and value < boss_total:
-                #     boss_string = f"{value}/{boss_total}"
+                boss_previous = boss_row[0][0]
 
-                # print(value)
-                # print(f"{values[x][y]}")
-                # print(f"{letters[x]}{y + 2}")
+                if boss_string != boss_previous:
+                    update_cell(cell_index=cell_index, item=cell, value=boss_string)
 
-                print(f"Writing {values[x][y]}:{boss_string}")
+                print(f"{cell} - New:{boss_string} Old:{boss_previous}")
 
-                sheet.values().update(spreadsheetId=SPREADSHEET_ID,
-                                      key='AIzaSyAGHJyMe1eEevgspPhehzI_mDJ3imwO0Eo',
-                                      range=f"Overall!{letters[x+1]}{y + 2}",
-                                      valueInputOption="USER_ENTERED",
-                                      body={'majorDimension': 'COLUMNS', 'values': [[boss_string]]}).execute()
-
+def update_cell(cell_index, item, value):
     sheet.values().update(spreadsheetId=SPREADSHEET_ID,
                           key='AIzaSyAGHJyMe1eEevgspPhehzI_mDJ3imwO0Eo',
-                          range=f"Overall!B21:D21",
+                          range=f"Overall!{cell_index}",
                           valueInputOption="USER_ENTERED",
-                          body={'majorDimension': 'COLUMNS', 'values': [[bossmats["Dream Solvent"]]]}).execute()
-
+                          body={'majorDimension': 'COLUMNS', 'values': [[value]]}).execute()
+    print(f"Wrote {item}: {value} in {cell_index}")
 
 # with keyboard.GlobalHotKeys({
 #         '-+*': main}) as h:
