@@ -7,6 +7,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
+from datetime import datetime
+import time
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly", "https://www.googleapis.com/auth/spreadsheets"]
@@ -403,11 +405,18 @@ def record_boss():
 
 def update_cell(cell_index, item, value):
     sheet.values().update(spreadsheetId=SPREADSHEET_ID,
-                          key='AIzaSyAGHJyMe1eEevgspPhehzI_mDJ3imwO0Eo',
+                          key=API_KEY,
                           range=f"Overall!{cell_index}",
                           valueInputOption="USER_ENTERED",
                           body={'majorDimension': 'COLUMNS', 'values': [[value]]}).execute()
     print(f"Wrote {item}: {value} in {cell_index}")
 
+
+# while True:
+#     now = datetime.now()
+#     current_time = now.strftime("%H:%M:%S")
+#     print(f"RUNNING CALCULATIONS - {current_time}")
+#     main()
+#     time.sleep(600)
 
 main()
